@@ -1,1 +1,860 @@
-let canvas;var threeDPass,slitScanPass,blurHPass,blurVPass,postProcPass;let slitScanShader,effectShader,blurHShader,blurVShader,img,helvetica;var seed,mainfreq,columns,globalSeed,color1,color2,color3,ww,hh,mm,isTriangled=!0;function fxrandom(r,e){return r&&e?r+fxrand()*(e-r):r&&!e?fxrand()*r:r||e?void 0:fxrand()}function preload(){effectShader=loadShader("assets/effect.vert","assets/effect.frag"),blurVShader=loadShader("assets/blur.vert","assets/blur.frag"),blurHShader=loadShader("assets/blur.vert","assets/blur.frag")}function setup(){pixelDensity(1),mm=min(windowWidth,windowHeight),canvas=createCanvas(mm,mm,WEBGL),canvas.id("ribbons"),ww=hh=1400,threeDPass=createGraphics(2*ww,2*hh,WEBGL),blurHPass=createGraphics(2*ww,2*hh,WEBGL),blurVPass=createGraphics(2*ww,2*hh,WEBGL),postProcPass=createGraphics(2*ww,2*hh,WEBGL),threeDPass.colorMode(HSB,100),imageMode(CENTER),colorMode(HSB,100),rectMode(CENTER),color1=color(0,0,90),color2=color(0,0,22),color3=color(0,0,10),color1=color(65,0,82),color2=color(0,30,22),color2=color(0,0,55),color3=color(0,0,80),color3=color(0,0,12),reset(),show(),show(),noLoop()}function draw(){}var shapes=[],brushsize=40;function show(){background(3),blurHShader.setUniform("tex0",threeDPass),blurHShader.setUniform("texelSize",[1/ww,1/hh]),blurHShader.setUniform("direction",[1,0]),blurHShader.setUniform("u_time",0*frameCount+38108.41),blurHShader.setUniform("amp",.13),blurHPass.shader(blurHShader),blurHPass.quad(-1,-1,1,-1,1,1,-1,1),blurVShader.setUniform("tex0",blurHPass),blurVShader.setUniform("texelSize",[1/ww,1/hh]),blurVShader.setUniform("direction",[0,1]),blurVShader.setUniform("u_time",0*frameCount+38108.41),blurVShader.setUniform("amp",.2),blurVPass.shader(blurVShader),blurVPass.quad(-1,-1,1,-1,1,1,-1,1),effectShader.setUniform("tex0",blurVPass),effectShader.setUniform("tex1",threeDPass),effectShader.setUniform("u_resolution",[ww,hh]),effectShader.setUniform("u_mouse",[ww,hh]),effectShader.setUniform("u_time",frameCount%133),effectShader.setUniform("incolor",[.93,.9,.88,1]),effectShader.setUniform("seed",3810841.411),postProcPass.shader(effectShader),postProcPass.quad(-1,-1,1,-1,1,1,-1,1),image(postProcPass,0,0,mm-18,mm-18)}function resample(r,e){for(var o=[],a=0;a<r.length;a++){var n=a,s=(a+1)%r.length,t=createVector(r[n][0],r[n][1],r[n][2]),f=createVector(r[s][0],r[s][1],r[s][2]),l=p5.Vector.dist(t,f);o.push([t.x,t.y,t.z]);var h=p5.Vector.sub(f,t);if(h.normalize(),l>e){var m=l/round(l/e),i=t.copy();for(h.mult(m);p5.Vector.dist(i,f)>1.64*m;)i.add(h),o.push([i.x,i.y,i.z])}}return o}var nzamp1=225,nzfrq1=.001,nzamp2=5,nzfrq2=.03;function myLine(r,e,o,a,n,s,t,f){let l=dist(e,o,a,n,s,t)/4;r.noFill(),r.beginShape();for(var h=0;h<l;h++){var m=h/(l-1),i=lerp(e,n,m),d=lerp(o,s,m),c=lerp(a,t,m),u=i+nzamp1*(-.5+power(noise(i*nzfrq1+1*frameCount*.003,d*nzfrq1+1*frameCount*.003,c*nzfrq1+831.31+1*frameCount*.003+f*m*m),3))+nzamp2*(-.5+power(noise(i*nzfrq2+1*frameCount*.003,d*nzfrq2+1*frameCount*.003,c*nzfrq2+254.22+1*frameCount*.003+f*m*m),3)),p=d,z=c+nzamp1*(-.5+power(noise(i*nzfrq1+1*frameCount*.003,d*nzfrq1+1*frameCount*.003,c*nzfrq1+524.66+1*frameCount*.003+f*m*m),3))+nzamp2*(-.5+power(noise(i*nzfrq2+1*frameCount*.003,d*nzfrq2+1*frameCount*.003,c*nzfrq2+333.56+1*frameCount*.003+f*m*m),3));r.vertex(u,p,z)}r.endShape()}function myBox(r,e,o,a,n,s,t,f){for(var l=[[[+e/2,+o/2,+a/2],[+e/2,+o/2,-a/2],[+e/2,-o/2,-a/2],[+e/2,-o/2,+a/2]],[[-e/2,+o/2,+a/2],[-e/2,+o/2,-a/2],[-e/2,-o/2,-a/2],[-e/2,-o/2,+a/2]],[[+e/2,+o/2,+a/2],[+e/2,-o/2,+a/2],[-e/2,-o/2,+a/2],[-e/2,+o/2,+a/2]],[[+e/2,+o/2,-a/2],[+e/2,-o/2,-a/2],[-e/2,-o/2,-a/2],[-e/2,+o/2,-a/2]]],h=0;h<l.length;h++){var m=l[h];r.beginShape();let e=resample(m,10);for(var i=0;i<e.length;i++){var d=e[i][0]+n,c=e[i][1]+s,u=e[i][2]+t,p=d+nzamp1*(-.5+power(noise(d*nzfrq1+1*frameCount*.003,c*nzfrq1+1*frameCount*.003,u*nzfrq1+831.31+1*frameCount*.003),3))+nzamp2*(-.5+power(noise(d*nzfrq2+1*frameCount*.003,c*nzfrq2+1*frameCount*.003,u*nzfrq2+254.22+1*frameCount*.003+f),3)),z=c,P=u+nzamp1*(-.5+power(noise(d*nzfrq1+1*frameCount*.003,c*nzfrq1+1*frameCount*.003,u*nzfrq1+524.66+1*frameCount*.003),3))+nzamp2*(-.5+power(noise(d*nzfrq2+1*frameCount*.003,c*nzfrq2+1*frameCount*.003,u*nzfrq2+333.56+1*frameCount*.003+f),3));r.vertex(p,z,P)}r.endShape(CLOSE)}}function resetThree(){randomSeed(globalSeed),noiseSeed(random(1e5));for(var r=Math.floor(random(3)),e=Math.floor(random(3)),o=Math.floor(random(3));r==e||1==r||2!=e&&2!=o;)r=Math.floor(random(3)),e=Math.floor(random(3)),o=Math.floor(random(3));threeDPass.clear(),threeDPass.ortho(-ww/2,ww/2,-hh/2,hh/2,0,4444),0==r?threeDPass.background(color1):1==r?threeDPass.background(color2):threeDPass.background(color3),threeDPass.push(),threeDPass.rotateX(radians(random(-45,45))),threeDPass.rotateY(radians(.3*frameCount*0-45)),threeDPass.translate(0,152,0),threeDPass.scale(1,-1,1),threeDPass.scale(.9),threeDPass.strokeWeight(5);for(var a=50,n=[],s=0;s<11;s++){for(var t=[],f=0;f<11;f++)t.push(0);n.push(t)}for(var l=0;l<10;l+=2)for(var h=0;h<2;h++){var m=-3+round(random(0,6)),i=-3+round(random(0,6)),d=round(random(1,2)),c=(round(random(1,1)),round(random(1,2)));d=2*round(2*power(noise(0*l,123.414+1*h),3))+1,1,c=2*round(2*power(noise(0*l,432.675+1*h),3))+1;let r=createVector(+(d*a/2-0),-25,+(c*a/2-0)),s=createVector(+(d*a/2-0),-25,-(c*a/2-0)),t=createVector(-(d*a/2-0),-25,-(c*a/2-0)),f=createVector(-(d*a/2-0),-25,+(c*a/2-0));r.add(50*m,50*l+a,50*i),s.add(50*m,50*l+a,50*i),t.add(50*m,50*l+a,50*i),f.add(50*m,50*l+a,50*i);var u=n[i+5+(c-1)/2][m+5+(d-1)/2],p=n[i+5-(c-1)/2][m+5+(d-1)/2],z=n[i+5-(c-1)/2][m+5-(d-1)/2],P=n[i+5+(c-1)/2][m+5-(d-1)/2],D=u*a+25,w=p*a+25,C=z*a+25,q=P*a+25;0==u&&(D=0*r.x-144),0==p&&(w=0*s.x-144),0==z&&(C=0*t.x-144),0==P&&(q=0*f.x-144),threeDPass.stroke(0,80,90),threeDPass.stroke(color(65,90-90*l/9,95-25*l/9)),0==e?threeDPass.stroke(color1):1==e?threeDPass.stroke(color2):threeDPass.stroke(color3),threeDPass.strokeWeight(5),myLine(threeDPass,r.x,r.y,r.z,r.x+0*random(-.5,.05),r.y-300-100*noise(l,h)+0*D,r.z+0*random(-.5,.05),.04),myLine(threeDPass,s.x,s.y,s.z,s.x+0*random(-.5,.05),s.y-300-100*noise(l,h)+0*w,s.z-0*random(-.5,.05),.04),myLine(threeDPass,t.x,t.y,t.z,t.x-0*random(-.5,.05),t.y-300-100*noise(l,h)+0*C,t.z-0*random(-.5,.05),.04),myLine(threeDPass,f.x,f.y,f.z,f.x-0*random(-.5,.05),f.y-300-100*noise(l,h)+0*q,f.z+0*random(-.5,.05),.04),threeDPass.strokeWeight(3),myLine(threeDPass,r.x,r.y,r.z,r.x+0*random(-.5,.05),r.y-300-100*noise(l,h)+0*D+random(-10,10),r.z+0*random(-.5,.05),.1),myLine(threeDPass,s.x,s.y,s.z,s.x+0*random(-.5,.05),s.y-300-100*noise(l,h)+0*w+random(-10,10),s.z-0*random(-.5,.05),.1),myLine(threeDPass,t.x,t.y,t.z,t.x-0*random(-.5,.05),t.y-300-100*noise(l,h)+0*C+random(-10,10),t.z-0*random(-.5,.05),.1),myLine(threeDPass,f.x,f.y,f.z,f.x-0*random(-.5,.05),f.y-300-100*noise(l,h)+0*q+random(-10,10),f.z+0*random(-.5,.05),.1),threeDPass.strokeWeight(5),threeDPass.push(),threeDPass.noStroke(),threeDPass.fill(color(65,90,72-72*l/9)),0==o?threeDPass.fill(color1):1==o?threeDPass.fill(color2):threeDPass.fill(color3),myBox(threeDPass,d*a,50,c*a,m*a,l*a+a,i*a,0),threeDPass.noFill(),0==e?threeDPass.stroke(color1):1==e?threeDPass.stroke(color2):threeDPass.stroke(color3),myBox(threeDPass,d*a,50,c*a,m*a,l*a+a,i*a,0),threeDPass.pop();for(var S=0;S<d;S++)for(var b=0;b<c;b++){let r=i+5+b-(c-1)/2,e=m+5+S-(d-1)/2;n[r][e]=max(n[r][e],l+1)}}threeDPass.pop()}function drawRibbon(r,e,o,a,n,s){o?r.beginShape(TRIANGLE_STRIP):r.beginShape(),parts=e.length;for(var t=0;t<parts;t++){parts;var f=e[t][0],l=e[t][1],h=e[t][2],m=f+0*nzamp1*(-.5+power(noise(f*nzfrq1+0*frameCount*.003,l*nzfrq1+0*frameCount*.003,h*nzfrq1+n+831.31+0*frameCount*.003),3))+s*nzamp2*(-.5+power(noise(f*nzfrq2+0*frameCount*.003,l*nzfrq2+0*frameCount*.003,h*nzfrq2+254.22+0*frameCount*.003),3)),i=l,d=h+0*nzamp1*(-.5+power(noise(f*nzfrq1+0*frameCount*.003,l*nzfrq1+0*frameCount*.003,h*nzfrq1+n+524.66+0*frameCount*.003),3))+s*nzamp2*(-.5+power(noise(f*nzfrq2+0*frameCount*.003,l*nzfrq2+0*frameCount*.003,h*nzfrq2+n+333.56+0*frameCount*.003),3));r.vertex(m,i,d),o||a||isTriangled||t%2==1&&(r.endShape(),r.beginShape())}a?r.endShape(CLOSE):r.endShape()}function drawAxis(r){let e=600;r.stroke("#ff0000"),r.line(-e,0,0,e,0,0),r.push(),r.translate(e,0,0),r.noStroke(),r.fill("#ff0000"),r.sphere(5),r.pop(),r.stroke("#00ff00"),r.line(0,-e,0,0,e,0),r.push(),r.translate(0,e,0),r.noStroke(),r.fill("#00ff00"),r.sphere(5),r.pop(),r.stroke("#0000ff"),r.line(0,0,-e,0,0,e),r.push(),r.translate(0,0,e),r.noStroke(),r.fill("#0000ff"),r.sphere(5),r.pop()}function resetRibbon(){for(randomSeed(globalSeed),noiseSeed(random(1e5)),threeDPass.clear(),threeDPass.ortho(-ww/2,ww/2,-hh/2,hh/2,0,4444),chc1=floor(random(3)),chc2=floor(random(3)),chc3=floor(random(3));chc2==chc3||1==chc1||2!=chc2&&2!=chc3;)chc1=floor(random(3)),chc2=floor(random(3)),chc3=floor(random(3));0==chc1?threeDPass.background(color1):1==chc1?threeDPass.background(color2):threeDPass.background(color3),threeDPass.push(),threeDPass.rotateX(radians(random(-22,22))),threeDPass.rotateY(radians(.3*frameCount*0-45)),threeDPass.translate(0,0,0),threeDPass.scale(1,-1,1),threeDPass.scale(.9),threeDPass.strokeWeight(5),isTriangled=random(100)<50;let r=100,e=0,o=round(random(8,13)),a=random(160,330),n=random(31,50);if(n<22){o=round(random(12,23));random(230,330)}var s=[],t=[],f=[],l=random(.003,.012);for(let P=0;P<=r*o;P++){let D=n+0*(-.5+power(noise(.01*P,431.41),3)),w=2*D;var h=power(noise(.4*P),5);let C=P/r*1*w;var m=map(P,0,r*o,-PI/2,PI/2);h=a*(0*cos(m)+.99)+120*(-.5+power(noise(P*l),3));let q=cos(radians(e))*h,S=sin(radians(e))*h;isTriangled&&(e+=1.8);var i=q,d=C,c=S,u=i+1*nzamp1*(-.5+power(noise(i*nzfrq1+1*frameCount*.003,d*nzfrq1+1*frameCount*.003,c*nzfrq1+831.31+1*frameCount*.003),3))+1*nzamp2*(-.5+power(noise(i*nzfrq2+1*frameCount*.003,d*nzfrq2+1*frameCount*.003,c*nzfrq2+254.22+1*frameCount*.003),3)),p=d,z=c+1*nzamp1*(-.5+power(noise(i*nzfrq1+1*frameCount*.003,d*nzfrq1+1*frameCount*.003,c*nzfrq1+524.66+1*frameCount*.003),3))+1*nzamp2*(-.5+power(noise(i*nzfrq2+1*frameCount*.003,d*nzfrq2+1*frameCount*.003,c*nzfrq2+333.56+1*frameCount*.003),3));s.push([u,p,z]),f.push([u,p,z]),q=cos(radians(e))*h,C=P/r*1*w,S=sin(radians(e))*h,d=C+D,c=S,u=(i=q)+1*nzamp1*(-.5+power(noise(i*nzfrq1+1*frameCount*.003,d*nzfrq1+1*frameCount*.003,c*nzfrq1+831.31+1*frameCount*.003),3))+1*nzamp2*(-.5+power(noise(i*nzfrq2+1*frameCount*.003,d*nzfrq2+1*frameCount*.003,c*nzfrq2+254.22+1*frameCount*.003),3)),p=d,z=c+1*nzamp1*(-.5+power(noise(i*nzfrq1+1*frameCount*.003,d*nzfrq1+1*frameCount*.003,c*nzfrq1+524.66+1*frameCount*.003),3))+1*nzamp2*(-.5+power(noise(i*nzfrq2+1*frameCount*.003,d*nzfrq2+1*frameCount*.003,c*nzfrq2+333.56+1*frameCount*.003),3)),t.push([u,p,z]),f.push([u,p,z]),e+=isTriangled?1.8:3.6}let P=t.concat(s.reverse());for(var D=0,w=0,C=0,q=0,S=f.length/2-200;S<f.length/2+200;S++)D+=f[S][0],w+=f[S][1],C+=f[S][2],q++;D/=q,w/=q,C/=q;for(S=0;S<f.length;S++)f[S][0]-=D,f[S][1]-=w,f[S][2]-=C,P[S][0]-=D,P[S][1]-=w,P[S][2]-=C;threeDPass.noStroke(),0==chc2?threeDPass.fill(color1):1==chc2?threeDPass.fill(color2):threeDPass.fill(color3),drawRibbon(threeDPass,f,!0,!1,0,0),0==chc3?threeDPass.stroke(color1):1==chc3?threeDPass.stroke(color2):threeDPass.stroke(color3),threeDPass.strokeWeight(5),threeDPass.noFill(),drawRibbon(threeDPass,f,!1,!1,0,0),threeDPass.pop()}function reset(){globalSeed=round(fxrandom(1e6)),resetRibbon(),seed=random(100),mainfreq=random(3,100),mainfreq=random(100)<150?random(3,13):random(230,400),columns=random(100)<30?random(6,33):random(222,666)}function mouseClicked(){}function touchEnded(){}function keyPressed(){keyCode}function windowResized(){}function power(r,e){return r<.5?.5*pow(2*r,e):1-.5*pow(2*(1-r),e)}const PERLIN_YWRAPB=4,PERLIN_YWRAP=16,PERLIN_ZWRAPB=8,PERLIN_ZWRAP=256,PERLIN_SIZE=4095;let perlin_octaves=4,perlin_amp_falloff=.5;const scaled_cosine=r=>.5*(1-Math.cos(r*Math.PI));let perlin;nnoise=function(r,e=0,o=0){if(null==perlin){perlin=new Array(4096);for(let r=0;r<4096;r++)perlin[r]=fxrand()}r<0&&(r=-r),e<0&&(e=-e),o<0&&(o=-o);let a,n,s,t,f,l=Math.floor(r),h=Math.floor(e),m=Math.floor(o),i=r-l,d=e-h,c=o-m,u=0,p=.5;for(let r=0;r<perlin_octaves;r++){let r=l+(h<<4)+(m<<8);a=scaled_cosine(i),n=scaled_cosine(d),s=perlin[4095&r],s+=a*(perlin[r+1&4095]-s),t=perlin[r+16&4095],t+=a*(perlin[r+16+1&4095]-t),s+=n*(t-s),r+=256,t=perlin[4095&r],t+=a*(perlin[r+1&4095]-t),f=perlin[r+16&4095],f+=a*(perlin[r+16+1&4095]-f),t+=n*(f-t),s+=scaled_cosine(c)*(t-s),u+=s*p,p*=perlin_amp_falloff,l<<=1,i*=2,h<<=1,d*=2,m<<=1,c*=2,i>=1&&(l++,i--),d>=1&&(h++,d--),c>=1&&(m++,c--)}return u};var noiseDetail=function(r,e){r>0&&(perlin_octaves=r),e>0&&(perlin_amp_falloff=e)},noiseSeed=function(r){const e=(()=>{const r=4294967296;let e,o;return{setSeed(a){o=e=(null==a?fxrand()*r:a)>>>0},getSeed:()=>e,rand:()=>(o=(1664525*o+1013904223)%r,o/r)}})();e.setSeed(r),perlin=new Array(4096);for(let r=0;r<4096;r++)perlin[r]=e.rand()};
+let canvas;
+
+var threeDPass;
+var slitScanPass;
+var blurHPass;
+var blurVPass;
+var postProcPass;
+
+let slitScanShader;
+let effectShader;
+let blurHShader;
+let blurVShader;
+
+let img;
+let helvetica;
+
+var seed;
+var mainfreq;
+var columns;
+
+var globalSeed;
+
+var color1;
+var color2;
+var color3;
+
+var ww, hh;
+
+var isTriangled = true;
+
+
+function fxrandom(a, b){
+    if(a && b){
+        return a + fxrand()*(b-a);
+    }
+    if(a && !b){
+        return fxrand()*a;
+    }
+    if(!a && !b){
+        return fxrand();
+    }
+}
+
+
+function preload() {
+    effectShader = loadShader('assets/effect.vert', 'assets/effect.frag');
+    blurVShader = loadShader('assets/blur.vert', 'assets/blur.frag');
+    blurHShader = loadShader('assets/blur.vert', 'assets/blur.frag');
+}
+
+var mm;
+function setup(){
+    pixelDensity(1);
+    mm = min(windowWidth, windowHeight);
+
+
+    canvas = createCanvas(mm, mm, WEBGL);
+    canvas.id('ribbons');
+
+    ww = hh = 1400;
+
+    threeDPass = createGraphics(ww*2, hh*2, WEBGL);
+    blurHPass = createGraphics(ww*2, hh*2, WEBGL);
+    blurVPass = createGraphics(ww*2, hh*2, WEBGL);
+    postProcPass = createGraphics(ww*2, hh*2, WEBGL);
+
+
+    threeDPass.colorMode(HSB, 100);
+    imageMode(CENTER);
+    colorMode(HSB, 100);
+    rectMode(CENTER);
+
+    color1 = color(0, 0, 90);
+    color2 = color(0, 0, 22);
+    color3 = color(0, 0, 10);
+
+    color1 = color(65, 0, 82);
+    color2 = color(0, 30, 22);
+    color2 = color(0, 0, 55);
+    color3 = color(0, 0, 80);
+    color3 = color(0, 0, 12);
+    
+    reset();
+    show();
+    show();
+}
+
+
+function draw(){
+   
+}
+
+var shapes = [];
+var brushsize = 40;
+
+function show(){
+    background(3);
+
+    //resetRibbon();
+    //resetThree();
+    blurHShader.setUniform('tex0', threeDPass);
+    blurHShader.setUniform('texelSize', [1.0/ww, 1.0/hh]);
+    blurHShader.setUniform('direction', [1.0, 0.0]);
+    blurHShader.setUniform('u_time', frameCount*0+3810841*.01);
+    blurHShader.setUniform('amp', .13);
+    blurHPass.shader(blurHShader);
+    blurHPass.quad(-1,-1,1,-1,1,1,-1,1);
+    
+    blurVShader.setUniform('tex0', blurHPass);
+    blurVShader.setUniform('texelSize', [1.0/ww, 1.0/hh]);
+    blurVShader.setUniform('direction', [0.0, 1.0]);
+    blurVShader.setUniform('u_time', frameCount*0+3810841*.01);
+    blurVShader.setUniform('amp', .2);
+    blurVPass.shader(blurVShader);
+    blurVPass.quad(-1,-1,1,-1,1,1,-1,1);
+
+    effectShader.setUniform('tex0', blurVPass);
+    effectShader.setUniform('tex1', threeDPass);
+    effectShader.setUniform('u_resolution', [ww, hh]);
+    effectShader.setUniform('u_mouse', [ww, hh]);
+    effectShader.setUniform('u_time', frameCount%133);
+    effectShader.setUniform('incolor', [.23, .9, .88, 1.]);
+    effectShader.setUniform('seed', 3810841.411);
+    postProcPass.shader(effectShader);
+    postProcPass.quad(-1,-1,1,-1,1,1,-1,1);
+    
+    //image(threeDPass, 0, 0, ww-18, hh-18);
+    image(postProcPass, 0, 0, mm-18, mm-18);
+}
+
+
+function resample(shape, detail){
+    var newshape = [];
+    for(var k = 0; k < shape.length; k++){
+        var ind1 = k;
+        var ind2 = (k+1)%shape.length;
+        var p1 = createVector(shape[ind1][0], shape[ind1][1], shape[ind1][2]);
+        var p2 = createVector(shape[ind2][0], shape[ind2][1], shape[ind2][2]);
+
+        var d = p5.Vector.dist(p1, p2);
+
+        newshape.push([p1.x, p1.y, p1.z]);
+
+        var dir = p5.Vector.sub(p2, p1);
+        dir.normalize();
+        if(d > detail){
+            var nn = round(d/detail);
+            var ndt = d/nn;
+            var cp = p1.copy();
+            dir.mult(ndt); 
+            while(p5.Vector.dist(cp, p2) > ndt*1.64){ // .2 is actually 1.0, but this is safer
+                cp.add(dir); 
+                newshape.push([cp.x, cp.y, cp.z]);
+            }
+        }
+        
+    }
+    return newshape;
+}
+
+var nzamp1 = 225;
+var nzfrq1 = .001;
+var nzamp2 = 5;
+var nzfrq2 = .03;
+
+function myLine(pg, x1, y1, z1, x2, y2, z2, off){
+    
+    let d = dist(x1, y1, z1, x2, y2, z2);
+    let parts = d / 4;
+
+    pg.noFill();
+    pg.beginShape();
+    for(var k = 0; k < parts; k++){
+        var p = k/(parts-1.);
+        var x = lerp(x1, x2, p);
+        var y = lerp(y1, y2, p);
+        var z = lerp(z1, z2, p);
+
+        var xx = x + nzamp1 * (-.5 + power(noise(x*nzfrq1+1*frameCount*.003, y*nzfrq1+1*frameCount*.003, z*nzfrq1 + 831.31+1*frameCount*.003+0*off*p*p), 3))
+                   + nzamp2 * (-.5 + power(noise(x*nzfrq2+1*frameCount*.003, y*nzfrq2+1*frameCount*.003, z*nzfrq2 + 254.22+1*frameCount*.003+0*off*p*p), 3));
+        var yy = y;
+        var zz = z + nzamp1 * (-.5 + power(noise(x*nzfrq1+1*frameCount*.003, y*nzfrq1+1*frameCount*.003, z*nzfrq1 + 524.66+1*frameCount*.003+0*off*p*p), 3))
+                   + nzamp2 * (-.5 + power(noise(x*nzfrq2+1*frameCount*.003, y*nzfrq2+1*frameCount*.003, z*nzfrq2 + 333.56+1*frameCount*.003+0*off*p*p), 3));
+
+        pg.vertex(xx, yy, zz);
+    }
+    pg.endShape();
+}
+
+function myBox(pg, w, h, d, x0, y0, z0, off){
+
+    var shapes = 
+    [
+        [
+            [+w/2, +h/2, +d/2],
+            [+w/2, +h/2, -d/2],
+            [+w/2, -h/2, -d/2],
+            [+w/2, -h/2, +d/2],
+        ],
+        [
+            [-w/2, +h/2, +d/2],
+            [-w/2, +h/2, -d/2],
+            [-w/2, -h/2, -d/2],
+            [-w/2, -h/2, +d/2],
+        ],
+        /*[
+            [+w/2, +h/2, +d/2],
+            [+w/2, +h/2, -d/2],
+            [-w/2, +h/2, -d/2],
+            [-w/2, +h/2, +d/2],
+        ],
+        [
+            [+w/2, -h/2, +d/2],
+            [+w/2, -h/2, -d/2],
+            [-w/2, -h/2, -d/2],
+            [-w/2, -h/2, +d/2],
+        ],*/
+        [
+            [+w/2, +h/2, +d/2],
+            [+w/2, -h/2, +d/2],
+            [-w/2, -h/2, +d/2],
+            [-w/2, +h/2, +d/2],
+        ],
+        [
+            [+w/2, +h/2, -d/2],
+            [+w/2, -h/2, -d/2],
+            [-w/2, -h/2, -d/2],
+            [-w/2, +h/2, -d/2],
+        ],
+    ];
+    
+    for(var s = 0; s < shapes.length; s++){
+        var shape = shapes[s];
+        pg.beginShape();
+        let resampled = resample(shape, 10);
+        for(var pt = 0; pt < resampled.length; pt++){
+            var x = resampled[pt][0] + x0;
+            var y = resampled[pt][1] + y0;
+            var z = resampled[pt][2] + z0;
+            var xx = x + nzamp1 * (-.5 + power(noise(x*nzfrq1+1*frameCount*.003, y*nzfrq1+1*frameCount*.003, z*nzfrq1 + 831.31+1*frameCount*.003), 3))
+                       + nzamp2 * (-.5 + power(noise(x*nzfrq2+1*frameCount*.003, y*nzfrq2+1*frameCount*.003, z*nzfrq2 + 254.22+1*frameCount*.003+off), 3));
+            var yy = y;
+            var zz = z + nzamp1 * (-.5 + power(noise(x*nzfrq1+1*frameCount*.003, y*nzfrq1+1*frameCount*.003, z*nzfrq1 + 524.66+1*frameCount*.003), 3))
+                       + nzamp2 * (-.5 + power(noise(x*nzfrq2+1*frameCount*.003, y*nzfrq2+1*frameCount*.003, z*nzfrq2 + 333.56+1*frameCount*.003+off), 3));
+            //pg.fill(map(resampled[pt][1], -h/2, h/2, 10, 32));
+            pg.vertex(xx, yy, zz);
+        }
+        pg.endShape(CLOSE);
+    }
+}
+
+function resetThree(){
+    randomSeed(globalSeed);
+    noiseSeed(random(100000));
+
+    var chc1 = Math.floor(random(3));
+    var chc2 = Math.floor(random(3));
+    var chc3 = Math.floor(random(3));
+    //while(chc1 == chc2 || chc2 == chc3){
+    while(chc1 == chc2 || chc1 == 1 || (chc2!=2 && chc3!=2)){
+        chc1 = Math.floor(random(3));
+        chc2 = Math.floor(random(3));
+        chc3 = Math.floor(random(3));
+    }
+
+    threeDPass.clear();
+    threeDPass.ortho(-ww/2, ww/2, -hh/2, hh/2, 0, 4444);
+    
+    if(chc1 == 0)
+        threeDPass.background(color1);
+    else if(chc1 == 1)
+        threeDPass.background(color2);
+    else
+        threeDPass.background(color3);
+
+    threeDPass.push();
+    threeDPass.rotateX(radians(random(-45, 45)));
+    threeDPass.rotateY(radians(-45+frameCount*.3*0));
+    threeDPass.translate(0, 152, 0);
+    //threeDPass.rotateX(radians(90));
+    //threeDPass.rotateY(radians(45));
+    threeDPass.scale(1, -1, 1);
+    threeDPass.scale(.9);
+    threeDPass.strokeWeight(5);
+
+    var cellSize = 50;
+
+    var mask = [];
+    for(var kk = 0; kk < 11; kk++){
+        var asf = [];
+        for(var qq = 0; qq < 11; qq++){
+            asf.push(0);
+        }
+        mask.push(asf);
+    }
+
+    for(var yoff = 0; yoff < 10; yoff+=2){
+        for(var floor = 0; floor < 2; floor++){
+            var xoff = -3 + round(random(0, 6));
+            var zoff = -3 + round(random(0, 6));
+
+            //xoff = -3 + round(6*power(noise(yoff,323.414+floor*1+frameCount*0.003),3));
+            //zoff = -3 + round(6*power(noise(yoff,553.223+floor*1+frameCount*0.003),3));
+
+            var bw = round(random(1, 2))*2+1;
+            var bh = round(random(1, 1))*1.;
+            var bd = round(random(1, 2))*2+1;
+
+            bw = round(2*power(noise(yoff*.0,123.414+floor*1),3))*2+1;
+            bh = 1.;
+            bd = round(2*power(noise(yoff*.0,432.675+floor*1),3))*2+1;
+        
+            let v1 = createVector( +(bw*cellSize/2-5*0), -bh*cellSize/2, +(bd*cellSize/2-5*0) );
+            let v2 = createVector( +(bw*cellSize/2-5*0), -bh*cellSize/2, -(bd*cellSize/2-5*0) );
+            let v3 = createVector( -(bw*cellSize/2-5*0), -bh*cellSize/2, -(bd*cellSize/2-5*0) );
+            let v4 = createVector( -(bw*cellSize/2-5*0), -bh*cellSize/2, +(bd*cellSize/2-5*0) );
+
+            v1.add(+cellSize*xoff, +cellSize*yoff + cellSize, +cellSize*zoff);
+            v2.add(+cellSize*xoff, +cellSize*yoff + cellSize, +cellSize*zoff);
+            v3.add(+cellSize*xoff, +cellSize*yoff + cellSize, +cellSize*zoff);
+            v4.add(+cellSize*xoff, +cellSize*yoff + cellSize, +cellSize*zoff);
+
+            //mask[zoff+5+(bd-1)/2][xoff+5+(bw-1)/2] = yoff+1;
+            //mask[zoff+5+(bd-1)/2][xoff+5-(bw-1)/2] = yoff+1;
+            //mask[zoff+5-(bd-1)/2][xoff+5-(bw-1)/2] = yoff+1;
+            //mask[zoff+5-(bd-1)/2][xoff+5+(bw-1)/2] = yoff+1;
+        
+            //threeDPass.line(v1.x, v1.y, v1.z, v1.x+12, -133, v1.z+12)
+            //threeDPass.line(v2.x, v2.y, v2.z, v2.x+12, -133, v2.z-12)
+            //threeDPass.line(v3.x, v3.y, v3.z, v3.x-12, -133, v3.z-12)
+            //threeDPass.line(v4.x, v4.y, v4.z, v4.x-12, -133, v4.z+12)
+
+            var i1 = mask[zoff+5+(bd-1)/2][xoff+5+(bw-1)/2];
+            var i2 = mask[zoff+5-(bd-1)/2][xoff+5+(bw-1)/2];
+            var i3 = mask[zoff+5-(bd-1)/2][xoff+5-(bw-1)/2];
+            var i4 = mask[zoff+5+(bd-1)/2][xoff+5-(bw-1)/2];
+            var l1 = (i1)*cellSize+cellSize/2;
+            var l2 = (i2)*cellSize+cellSize/2;
+            var l3 = (i3)*cellSize+cellSize/2;
+            var l4 = (i4)*cellSize+cellSize/2;
+            if(i1 == 0) l1 = -144 + 0*.3*v1.x;
+            if(i2 == 0) l2 = -144 + 0*.3*v2.x;
+            if(i3 == 0) l3 = -144 + 0*.3*v3.x;
+            if(i4 == 0) l4 = -144 + 0*.3*v4.x;
+
+            if(yoff == 2){
+                //print(i1, i2, i3, i4);
+            }
+
+            // LEGS
+            threeDPass.stroke(0, 80, 90);
+            threeDPass.stroke(color(65, 90 - 90*yoff/9., 95 - 25*yoff/9.));
+            if(chc2 == 0)
+                threeDPass.stroke(color1);
+            else if(chc2 == 1)
+                threeDPass.stroke(color2);
+            else
+                threeDPass.stroke(color3);
+            threeDPass.strokeWeight(5);
+            myLine(threeDPass, v1.x, v1.y, v1.z, v1.x+0*12*random(-.5,.05), v1.y-300-100*noise(yoff,floor)+0*l1, v1.z+0*12*random(-.5,.05), .04);
+            myLine(threeDPass, v2.x, v2.y, v2.z, v2.x+0*12*random(-.5,.05), v2.y-300-100*noise(yoff,floor)+0*l2, v2.z-0*12*random(-.5,.05), .04);
+            myLine(threeDPass, v3.x, v3.y, v3.z, v3.x-0*12*random(-.5,.05), v3.y-300-100*noise(yoff,floor)+0*l3, v3.z-0*12*random(-.5,.05), .04);
+            myLine(threeDPass, v4.x, v4.y, v4.z, v4.x-0*12*random(-.5,.05), v4.y-300-100*noise(yoff,floor)+0*l4, v4.z+0*12*random(-.5,.05), .04);
+            threeDPass.strokeWeight(3);
+            myLine(threeDPass, v1.x, v1.y, v1.z, v1.x+0*12*random(-.5,.05), v1.y-300-100*noise(yoff,floor)+0*l1+random(-10,10), v1.z+0*12*random(-.5,.05), .1);
+            myLine(threeDPass, v2.x, v2.y, v2.z, v2.x+0*12*random(-.5,.05), v2.y-300-100*noise(yoff,floor)+0*l2+random(-10,10), v2.z-0*12*random(-.5,.05), .1);
+            myLine(threeDPass, v3.x, v3.y, v3.z, v3.x-0*12*random(-.5,.05), v3.y-300-100*noise(yoff,floor)+0*l3+random(-10,10), v3.z-0*12*random(-.5,.05), .1);
+            myLine(threeDPass, v4.x, v4.y, v4.z, v4.x-0*12*random(-.5,.05), v4.y-300-100*noise(yoff,floor)+0*l4+random(-10,10), v4.z+0*12*random(-.5,.05), .1);
+            threeDPass.strokeWeight(5);
+            
+            //threeDPass.translate(xoff*cellSize, yoff*cellSize + cellSize, zoff*cellSize);
+
+            // BOX
+            threeDPass.push();
+            threeDPass.noStroke();
+            threeDPass.fill(color(65, 90, 72 - 72*yoff/9.));
+            if(chc3 == 0)
+                threeDPass.fill(color1);
+            else if(chc3 == 1)
+                threeDPass.fill(color2);
+            else
+                threeDPass.fill(color3);
+            //threeDPass.box(bw*cellSize, bh*cellSize, bd*cellSize);
+            myBox(threeDPass, bw*cellSize, bh*cellSize, bd*cellSize, xoff*cellSize, yoff*cellSize + cellSize, zoff*cellSize, 0.0);
+            
+            // BOX CONTOUR
+            threeDPass.noFill();
+            if(chc2 == 0)
+                threeDPass.stroke(color1);
+            else if(chc2 == 1)
+                threeDPass.stroke(color2);
+            else
+                threeDPass.stroke(color3);
+            //threeDPass.box(bw*cellSize, bh*cellSize, bd*cellSize);
+            myBox(threeDPass, bw*cellSize, bh*cellSize, bd*cellSize, xoff*cellSize, yoff*cellSize + cellSize, zoff*cellSize, .0);
+
+            threeDPass.pop();
+        
+            for(var wi = 0; wi < bw; wi++){
+                for(var di = 0; di < bd; di++){
+                    let mi = zoff+5+di-(bd-1)/2;
+                    let mj = xoff+5+wi-(bw-1)/2;
+                    mask[mi][mj] = max(mask[mi][mj], yoff+1)
+                }
+            }
+        }
+    }
+
+    /*
+    threeDPass.push();
+    threeDPass.translate(0, -cellSize/2*0, 0);
+    threeDPass.box(11*cellSize, 2, 11*cellSize);
+    for(var kk = 0; kk < 11; kk++){
+        threeDPass.line((kk-5.5)*cellSize, 0, -5.5*cellSize, (kk-5.5)*cellSize, 0, +5.5*cellSize);
+    }
+    for(var kk = 0; kk < 11; kk++){
+        threeDPass.line(-5.5*cellSize, 0, (kk-5.5)*cellSize, +5.5*cellSize, 0, (kk-5.5)*cellSize);
+    }
+    
+    threeDPass.noStroke();
+    threeDPass.fill(40, 100, 0);
+    
+    for(var kk = 0; kk < 11; kk++){
+        for(var qq = 0; qq < 11; qq++){
+            var val = mask[kk][qq];
+            threeDPass.push();
+            threeDPass.translate((qq-5)*cellSize, 0, (kk-5)*cellSize);
+            threeDPass.scale(1, -1, 1);
+            //threeDPass.text(val, 0, 0);
+            if(val == 1){
+                threeDPass.box(2,2,2);
+            }
+            if(val == 2){
+                threeDPass.push();
+                threeDPass.translate(4, 0, 0);
+                threeDPass.box(2,2,2);
+                threeDPass.translate(-8, 0, 0);
+                threeDPass.box(2,2,2);
+                threeDPass.pop();
+            }
+            if(val == 3){
+                threeDPass.push();
+                threeDPass.box(2,2,2);
+                threeDPass.translate(4, 0, 0);
+                threeDPass.box(2,2,2);
+                threeDPass.translate(-8, 0, 0);
+                threeDPass.box(2,2,2);
+                threeDPass.pop();
+            }
+            threeDPass.pop();
+        }
+    }
+    threeDPass.pop();*/
+
+    threeDPass.pop();
+}
+
+function drawRibbon(pg, ribbon, isstrip, close, off, amp){
+    if(isstrip)
+        pg.beginShape(TRIANGLE_STRIP);
+    else
+        pg.beginShape();
+    
+    parts = ribbon.length;
+    for(var k = 0; k < parts; k++){
+        var p = k/(parts-1.);
+        var x = ribbon[k][0];
+        var y = ribbon[k][1];
+        var z = ribbon[k][2];
+
+        var xx = x + 0*nzamp1 * (-.5 + power(noise(x*nzfrq1+0*frameCount*.003, y*nzfrq1+0*frameCount*.003, z*nzfrq1+off + 831.31+0*frameCount*.003), 3))
+                    + amp*nzamp2 * (-.5 + power(noise(x*nzfrq2+0*frameCount*.003, y*nzfrq2+0*frameCount*.003, z*nzfrq2 + 254.22+0*frameCount*.003), 3));
+        var yy = y;
+        var zz = z + 0*nzamp1 * (-.5 + power(noise(x*nzfrq1+0*frameCount*.003, y*nzfrq1+0*frameCount*.003, z*nzfrq1+off + 524.66+0*frameCount*.003), 3))
+                    + amp*nzamp2 * (-.5 + power(noise(x*nzfrq2+0*frameCount*.003, y*nzfrq2+0*frameCount*.003, z*nzfrq2+off + 333.56+0*frameCount*.003), 3));
+
+
+        pg.vertex(xx, yy, zz);
+        if(!isstrip && !close && !isTriangled){
+            if(k%2 == 1){
+                pg.endShape();
+                pg.beginShape();
+            }
+        }
+    }
+    if(close)
+        pg.endShape(CLOSE);
+    else
+        pg.endShape();
+}
+
+function drawAxis(pg){
+    let we = 600;
+
+    pg.stroke('#ff0000');
+    pg.line(-we, 0, 0, we, 0, 0);
+    pg.push();
+    pg.translate(we, 0, 0);
+    pg.noStroke();
+    pg.fill('#ff0000')
+    pg.sphere(5);
+    pg.pop();
+    
+    pg.stroke('#00ff00');
+    pg.line(0, -we, 0, 0, we, 0);
+    pg.push();
+    pg.translate(0, we, 0);
+    pg.noStroke();
+    pg.fill('#00ff00')
+    pg.sphere(5);
+    pg.pop();
+    
+    pg.stroke('#0000ff');
+    pg.line(0, 0, -we, 0, 0, we);
+    pg.push();
+    pg.translate(0, 0, we);
+    pg.noStroke();
+    pg.fill('#0000ff')
+    pg.sphere(5);
+    pg.pop();
+
+}
+
+function resetRibbon(){
+    randomSeed(globalSeed);
+    noiseSeed(random(100000));
+    threeDPass.clear();
+    threeDPass.ortho(-ww/2, ww/2, -hh/2, hh/2, 0, 4444);
+    
+    chc1 = floor(random(3));
+    chc2 = floor(random(3));
+    chc3 = floor(random(3));
+    while(chc2 == chc3 || chc1 == 1 || (chc2!=2 && chc3!=2)){
+        chc1 = floor(random(3));
+        chc2 = floor(random(3));
+        chc3 = floor(random(3));
+    }
+
+
+    if(chc1 == 0)
+        threeDPass.background(color1);
+    else if(chc1 == 1)
+        threeDPass.background(color2);
+    else
+        threeDPass.background(color3);
+
+    threeDPass.push();
+    threeDPass.rotateX(radians(random(-22, 22)));
+    threeDPass.rotateY(radians(-45+frameCount*.3*0));
+    threeDPass.translate(0, 0, 0);
+    //threeDPass.rotateX(radians(90));
+    //threeDPass.rotateY(radians(45));
+    threeDPass.scale(1, -1, 1);
+    threeDPass.scale(.9);
+    threeDPass.strokeWeight(5);
+
+    //drawAxis(threeDPass);
+    isTriangled = random(100) < 50;
+    let ptsInLoop = 100;
+    let angle = 0;
+    let angleStep = 180.0 / ptsInLoop;
+    let loops = round(random(8, 13));
+
+    let radius0 = random(160, 330);
+    let rwidth0 = random(31, 50);
+    let rraise0 = rwidth0*1.5;
+
+    if(rwidth0 < 22){
+        loops = round(random(12, 23))
+        let radius0 = random(230, 330);
+    }
+
+    var downPts = [];
+    var upPts = [];
+    var allPts = [];
+
+    var rfrq = random(0.003, 0.012)
+    // the DISTORTION is done when generating points, in order to calculate center of mass correctly
+    for (let i = 0; i <= ptsInLoop*loops; i++) {
+        
+        let rwidth = rwidth0 + 0*(-.5 + power(noise(i*.01, 431.41), 3));
+        let rraise = rwidth*2;
+
+        var radiusr = radius0 + 250*(-.5 + power(noise(i*.4), 5));
+        let py = 1.*(i/ptsInLoop) * rraise;
+        var ang = map(i, 0, ptsInLoop*loops, -PI/2, PI/2);
+        radiusr = radius0*(.0*cos(ang) + .99) + 120*(-.5 + power(noise(i*rfrq), 3));
+        let px = cos(radians(angle)) * radiusr;
+        let pz = sin(radians(angle)) * radiusr;
+        if(isTriangled)
+            angle += angleStep;
+        //threeDPass.vertex(px, py, pz);
+
+        var x = px;
+        var y = py;
+        var z = pz;
+        var xx = x + 1*nzamp1 * (-.5 + power(noise(x*nzfrq1+1*frameCount*.003, y*nzfrq1+1*frameCount*.003, z*nzfrq1 + 831.31+1*frameCount*.003), 3))
+                    + 1*nzamp2 * (-.5 + power(noise(x*nzfrq2+1*frameCount*.003, y*nzfrq2+1*frameCount*.003, z*nzfrq2 + 254.22+1*frameCount*.003), 3));
+        var yy = y;
+        var zz = z + 1*nzamp1 * (-.5 + power(noise(x*nzfrq1+1*frameCount*.003, y*nzfrq1+1*frameCount*.003, z*nzfrq1 + 524.66+1*frameCount*.003), 3))
+                    + 1*nzamp2 * (-.5 + power(noise(x*nzfrq2+1*frameCount*.003, y*nzfrq2+1*frameCount*.003, z*nzfrq2 + 333.56+1*frameCount*.003), 3));
+
+
+        downPts.push([xx, yy, zz])
+        allPts.push([xx, yy, zz])
+        px = cos(radians(angle)) * radiusr;
+        py = 1.*(i/ptsInLoop) * rraise;
+        pz = sin(radians(angle)) * radiusr;
+        //threeDPass.vertex(px, py+rwidth, pz);
+        
+        x = px;
+        y = py+rwidth;
+        z = pz;
+        xx = x + 1*nzamp1 * (-.5 + power(noise(x*nzfrq1+1*frameCount*.003, y*nzfrq1+1*frameCount*.003, z*nzfrq1 + 831.31+1*frameCount*.003), 3))
+               + 1*nzamp2 * (-.5 + power(noise(x*nzfrq2+1*frameCount*.003, y*nzfrq2+1*frameCount*.003, z*nzfrq2 + 254.22+1*frameCount*.003), 3));
+        yy = y;
+        zz = z + 1*nzamp1 * (-.5 + power(noise(x*nzfrq1+1*frameCount*.003, y*nzfrq1+1*frameCount*.003, z*nzfrq1 + 524.66+1*frameCount*.003), 3))
+               + 1*nzamp2 * (-.5 + power(noise(x*nzfrq2+1*frameCount*.003, y*nzfrq2+1*frameCount*.003, z*nzfrq2 + 333.56+1*frameCount*.003), 3));
+
+        upPts.push([xx, yy, zz])
+        allPts.push([xx, yy, zz])
+        if(isTriangled)
+            angle += angleStep;
+        else
+            angle += angleStep*2;
+    }
+
+    let allPtsLoop = upPts.concat(downPts.reverse());
+
+    
+    var mx = 0;
+    var my = 0;
+    var mz = 0;
+    var nn = 0;
+    for(var k = allPts.length/2 - 2*ptsInLoop; k < allPts.length/2 + 2*ptsInLoop; k++){
+        mx += allPts[k][0];
+        my += allPts[k][1];
+        mz += allPts[k][2];
+        //allPts[k][0] *= 2;
+        //allPts[k][2] *= 2;
+        nn++;
+    }
+    mx = mx / nn;
+    my = my / nn;
+    mz = mz / nn;
+    for(var k = 0; k < allPts.length; k++){
+        allPts[k][0] -= mx;
+        allPts[k][1] -= my;
+        allPts[k][2] -= mz;
+        allPtsLoop[k][0] -= mx;
+        allPtsLoop[k][1] -= my;
+        allPtsLoop[k][2] -= mz;
+    }
+    
+    threeDPass.noStroke();
+    if(chc2 == 0)
+        threeDPass.fill(color1);
+    else if(chc2 == 1)
+        threeDPass.fill(color2);
+    else
+        threeDPass.fill(color3);
+    drawRibbon(threeDPass, allPts, true, false, 0.0, 0.0); //pg, points, isStrip, CLOSE, off, amp
+    
+    if(chc3 == 0)
+        threeDPass.stroke(color1);
+    else if(chc3 == 1)
+        threeDPass.stroke(color2);
+    else
+        threeDPass.stroke(color3);
+    threeDPass.strokeWeight(5);
+    threeDPass.noFill();
+    if(false)
+        drawRibbon(threeDPass, allPtsLoop, false, true, 0.0, 0.0);
+    else
+        drawRibbon(threeDPass, allPts, false, false, 0.0, 0.0);
+
+    threeDPass.pop();
+}
+
+function reset(){
+    globalSeed = round(fxrandom(1000000));
+
+    resetRibbon();
+    //resetThree();
+
+    seed = random(100.);
+    mainfreq = random(3., 100.);
+    if(random(100) < 150)
+        mainfreq = random(3, 13);
+    else
+        mainfreq = random(230, 400);
+    
+    if(random(100) < 30)
+        columns = random(6., 33);
+    else
+        columns = random(222, 666);
+    
+}
+
+function mouseClicked(){
+    //reset();
+}
+
+function touchEnded(){
+    //reset();
+}
+
+function keyPressed(){
+    if (keyCode == 65) {
+        //reset();
+    }
+    //save(postProcPass, 'myImage.png');
+}
+
+
+function windowResized() {
+    //mm = min(800, min(ww, hh));
+    
+    //ww = windowWidth;
+    //hh = windowHeight;
+    //ww = hh/1.;
+    //resizeCanvas(ww, hh);
+
+    //reset();
+    //show();
+}
+
+function power(p, g) {
+    if (p < 0.5)
+    return 0.5 * pow(2*p, g);
+    else
+    return 1 - 0.5 * pow(2*(1 - p), g);
+}
+
+
+const PERLIN_YWRAPB = 4;
+const PERLIN_YWRAP = 1 << PERLIN_YWRAPB;
+const PERLIN_ZWRAPB = 8;
+const PERLIN_ZWRAP = 1 << PERLIN_ZWRAPB;
+const PERLIN_SIZE = 4095;
+
+let perlin_octaves = 4; 
+let perlin_amp_falloff = 0.5; 
+
+const scaled_cosine = i => 0.5 * (1.0 - Math.cos(i * Math.PI));
+let perlin;
+
+
+nnoise = function(x, y = 0, z = 0) {
+    if (perlin == null) {
+        perlin = new Array(PERLIN_SIZE + 1);
+        for (let i = 0; i < PERLIN_SIZE + 1; i++) {
+            perlin[i] = fxrand();
+        }
+    }
+    
+    if (x < 0) {
+        x = -x;
+    }
+    if (y < 0) {
+        y = -y;
+    }
+    if (z < 0) {
+        z = -z;
+    }
+    
+    let xi = Math.floor(x),
+    yi = Math.floor(y),
+    zi = Math.floor(z);
+    let xf = x - xi;
+    let yf = y - yi;
+    let zf = z - zi;
+    let rxf, ryf;
+    
+    let r = 0;
+    let ampl = 0.5;
+    
+    let n1, n2, n3;
+    
+    for (let o = 0; o < perlin_octaves; o++) {
+        let of = xi + (yi << PERLIN_YWRAPB) + (zi << PERLIN_ZWRAPB);
+        
+        rxf = scaled_cosine(xf);
+        ryf = scaled_cosine(yf);
+        
+        n1 = perlin[of & PERLIN_SIZE];
+        n1 += rxf * (perlin[(of + 1) & PERLIN_SIZE] - n1);
+        n2 = perlin[(of + PERLIN_YWRAP) & PERLIN_SIZE];
+        n2 += rxf * (perlin[(of + PERLIN_YWRAP + 1) & PERLIN_SIZE] - n2);
+        n1 += ryf * (n2 - n1);
+        
+        of += PERLIN_ZWRAP;
+        n2 = perlin[of & PERLIN_SIZE];
+        n2 += rxf * (perlin[(of + 1) & PERLIN_SIZE] - n2);
+        n3 = perlin[(of + PERLIN_YWRAP) & PERLIN_SIZE];
+        n3 += rxf * (perlin[(of + PERLIN_YWRAP + 1) & PERLIN_SIZE] - n3);
+        n2 += ryf * (n3 - n2);
+        
+        n1 += scaled_cosine(zf) * (n2 - n1);
+        
+        r += n1 * ampl;
+        ampl *= perlin_amp_falloff;
+        xi <<= 1;
+        xf *= 2;
+        yi <<= 1;
+        yf *= 2;
+        zi <<= 1;
+        zf *= 2;
+        
+        if (xf >= 1.0) {
+            xi++;
+            xf--;
+        }
+        if (yf >= 1.0) {
+            yi++;
+            yf--;
+        }
+        if (zf >= 1.0) {
+            zi++;
+            zf--;
+        }
+    }
+    return r;
+};
+
+var noiseDetail = function(lod, falloff) {
+    if (lod > 0) {
+        perlin_octaves = lod;
+    }
+    if (falloff > 0) {
+        perlin_amp_falloff = falloff;
+    }
+};
+
+var noiseSeed = function(seed) {
+    const lcg = (() => {
+        const m = 4294967296;
+        const a = 1664525;
+        const c = 1013904223;
+        let seed, z;
+        return {
+            setSeed(val) {
+                z = seed = (val == null ? fxrand() * m : val) >>> 0;
+            },
+            getSeed() {
+                return seed;
+            },
+            rand() {
+                z = (a * z + c) % m;
+                return z / m;
+            }
+        };
+    })();
+    
+    lcg.setSeed(seed);
+    perlin = new Array(PERLIN_SIZE + 1);
+    for (let i = 0; i < PERLIN_SIZE + 1; i++) {
+        perlin[i] = lcg.rand();
+    }
+};
