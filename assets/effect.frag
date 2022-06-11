@@ -167,12 +167,12 @@ void main() {
     vec4 rra = imggr + .127*(-.5 + rndm);
 
     //outc = max(outc, rra);
-    outc.rgb = incolor.rgb;
+    //outc.rgb = incolor.rgb;
 
     rra.a = 1.0;
     outc.a = 1.0;
 
-    gl_FragColor = 1;
+    gl_FragColor = outc;
     
     //gl_FragColor = vec4(ff*vec3(1.),1.);
     //gl_FragColor = vec4(1.,0.,0.,1.);
